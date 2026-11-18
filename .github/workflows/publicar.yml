@@ -13,6 +13,10 @@ on:
       notas:
         description: "O que mudou"
         default: "Atualização da B.IA.DI"
+      teste:
+        description: "Só teste: gera o APK assinado sem publicar (para instalar num carro por ADB)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -66,7 +70,19 @@ jobs:
           ./gradlew :app:testDebugUnitTest :app:assembleRelease --stacktrace \
             -PbiadiVersionCode=$CODE -PbiadiVersionName=$NAME
 
+      - name: APK de teste (não publica)
+        if: ${{ inputs.teste }}
+        run: cp src/app/build/outputs/apk/release/*.apk "BIADI-teste-v${NAME}-c${CODE}.apk"
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ inputs.teste }}
+        with:
+          name: biadi-teste
+          path: BIADI-teste-*.apk
+          retention-days: 3
+
       - name: Publicar no release "biadi"
+        if: ${{ !inputs.teste }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
