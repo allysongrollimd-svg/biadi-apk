@@ -1,4 +1,4 @@
-name: Publicar B.IA.DI
+name: Publicar VoltIA
 
 # Compila o código privado (allysongrollimd-svg/biadi) com uma chave de leitura,
 # assina com a chave da B.IA.DI e publica o APK no release "biadi" deste
@@ -12,7 +12,10 @@ on:
         default: "main"
       notas:
         description: "O que mudou"
-        default: "Atualização da B.IA.DI"
+        default: "Atualização da VoltIA"
+      versao:
+        description: "Nome da versão (ex.: 1.0.0). Vazio = 0.1.<número do build>"
+        default: ""
       teste:
         description: "Só teste: gera o APK assinado sem publicar (para instalar num carro por ADB)"
         type: boolean
@@ -64,7 +67,8 @@ jobs:
           BIADI_KEY_PASSWORD: ${{ secrets.BIADI_KEY_PASSWORD }}
         run: |
           CODE=$((100 + ${{ github.run_number }}))
-          NAME="0.1.${{ github.run_number }}"
+          NAME="${{ inputs.versao }}"
+          [ -n "$NAME" ] || NAME="0.1.${{ github.run_number }}"
           echo "CODE=$CODE" >> "$GITHUB_ENV"
           echo "NAME=$NAME" >> "$GITHUB_ENV"
           ./gradlew :app:testDebugUnitTest :app:assembleRelease --stacktrace \
@@ -96,9 +100,9 @@ jobs:
             for a in $(gh release view biadi -R "$GITHUB_REPOSITORY" --json assets -q '.assets[].name'); do
               gh release delete-asset biadi "$a" -R "$GITHUB_REPOSITORY" -y
             done
-            gh release edit biadi -R "$GITHUB_REPOSITORY" --notes "$NOTES"
+            gh release edit biadi -R "$GITHUB_REPOSITORY" --title "VoltIA" --notes "$NOTES"
           else
-            gh release create biadi -R "$GITHUB_REPOSITORY" --title "B.IA.DI" --notes "$NOTES"
+            gh release create biadi -R "$GITHUB_REPOSITORY" --title "VoltIA" --notes "$NOTES"
           fi
           gh release upload biadi "$OUT" -R "$GITHUB_REPOSITORY" --clobber
           echo "APK: https://github.com/$GITHUB_REPOSITORY/releases/download/biadi/$OUT"
